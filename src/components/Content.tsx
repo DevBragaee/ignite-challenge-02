@@ -1,7 +1,20 @@
-import './styles/content.scss';
-import { MovieCard } from './MovieCard';
-import { useState,useEffect } from 'react';
-import { api } from '../services/api';
+
+// imports necessarios 
+import { useEffect, useState } from "react";
+import { api } from "../services/api";
+import { MovieCard } from "./MovieCard";
+
+// imports dos estilos de "content"
+import '../styles/content.scss';
+
+//interface com os dados "APONTADORES" vindo da API 
+interface GenreResponseProps {
+  id: number;
+  name: 'action' | 'comedy' | 'documentary' | 'drama' | 'horror' | 'family';
+  title: string;
+}
+
+// Interfaces com os atributos de "filmes ,movies"
 interface MovieProps {
   imdbID: string;
   Title: string;
@@ -12,24 +25,44 @@ interface MovieProps {
   }>;
   Runtime: string;
 }
-export function Content() {
+
+// interface com o genero selecionado pelo  id  
+interface IContentProps {
+  selectedGenreId: number;
+}
+
+export function Content({ selectedGenreId }: IContentProps) {
   const [movies, setMovies] = useState<MovieProps[]>([]);
+  const [selectedGenre, setSelectedGenre] = useState<GenreResponseProps>({} as GenreResponseProps);
+
   useEffect(() => {
     api.get<MovieProps[]>(`movies/?Genre_id=${selectedGenreId}`).then(response => {
       setMovies(response.data);
     });
-  return (
-  <div className="container">
-  <header>
-    <span className="category">Categoria:<span> {selectedGenre.title}</span></span>
-  </header>
 
-  <main>
-    <div className="movies-list">
-      {movies.map(movie => (
-        <MovieCard key ={movie.imdbID} title={movie.Title} poster={movie.Poster} runtime={movie.Runtime} rating={movie.Ratings[0].Value} />
-      ))}
+    api.get<GenreResponseProps>(`genres/${selectedGenreId}`).then(response => {
+      setSelectedGenre(response.data);
+    })
+  }, [selectedGenreId]);
+
+  return (
+    <div className="container">
+     
+
+      <main>
+        <div className="movies-list">
+          {movies.map(movie => (
+            <MovieCard
+              key={movie.imdbID}
+              title={movie.Title}
+              poster={movie.Poster}
+              runtime={movie.Runtime}
+              rating={movie.Ratings[0].Value}
+            />
+          ))}
+        </div>
+      </main>
     </div>
-  </main>
-</div>) ;
+  )
+
 }
